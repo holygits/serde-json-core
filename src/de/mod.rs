@@ -403,11 +403,35 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         unreachable!()
     }
 
-    fn deserialize_bytes<V>(self, _visitor: V) -> Result<V::Value>
+    fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        let peek = self.parse_whitespace().ok_or(Error::EofWhileParsingValue)?;
+
+        // "permissions":{"hello": {}}
+        if peek == b'{' {
+            // Count the bytes until the matching closing '}'
+            let mut level = 1u32;
+            let start = self.index;
+
+            while self.index < self.slice.len() {
+                self.eat_char();
+                level = match self.peek() {
+                    Some(b'{') => level + 1,
+                    Some(b'}') => level - 1,
+                    Some(_) => level,
+                    None => return Err(Error::EofWhileParsingString),
+                };
+                if level == 0 {
+                    self.eat_char();
+                    return visitor.visit_borrowed_bytes(&self.slice[start..self.index])
+                }
+            }
+            Err(Error::EofWhileParsingObject)
+        } else {
+            Err(Error::InvalidType)
+        }
     }
 
     fn deserialize_byte_buf<V>(self, _visitor: V) -> Result<V::Value>
