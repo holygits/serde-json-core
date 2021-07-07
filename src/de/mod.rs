@@ -74,6 +74,9 @@ impl std::error::Error for Error {
     }
 }
 
+#[cfg(not(feature = "std"))]
+impl serde::de::StdError for Error {}
+
 pub(crate) struct Deserializer<'b> {
     slice: &'b [u8],
     index: usize,
