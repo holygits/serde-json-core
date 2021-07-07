@@ -483,7 +483,9 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        match self.peek().ok_or(Error::EofWhileParsingValue)? {
+        let peek = self.parse_whitespace().ok_or(Error::EofWhileParsingValue)?;
+
+        match peek {
             b'[' => {
                 self.eat_char();
                 let ret = visitor.visit_seq(SeqAccess::new(self))?;
@@ -708,6 +710,23 @@ mod tests {
         assert_eq!(
             crate::from_str(r#"{ "led": false }"#),
             Ok(Led { led: false })
+        );
+    }
+
+    #[test]
+    fn struct_with_tuple_field() {
+        #[derive(Debug, Deserialize, PartialEq)]
+        struct Test {
+            status: bool,
+            point: (u32, u32, u32),
+        }
+
+        assert_eq!(
+            crate::from_str(r#"{ "status": true, "point": [1,2,3] }"#),
+            Ok(Test {
+                status: true,
+                point: (1_u32, 2, 3)
+            })
         );
     }
 
