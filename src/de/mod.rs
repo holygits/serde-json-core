@@ -279,11 +279,12 @@ macro_rules! deserialize_signed {
 impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     type Error = Error;
 
-    fn deserialize_any<V>(self, _visitor: V) -> Result<V::Value>
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        // it's JSON, string is a safe assumption...
+        self.deserialize_str(visitor)
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value>
