@@ -425,7 +425,7 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
                 };
                 if level == 0 {
                     self.eat_char();
-                    return visitor.visit_borrowed_bytes(&self.slice[start..self.index])
+                    return visitor.visit_borrowed_bytes(&self.slice[start..self.index]);
                 }
             }
             Err(Error::EofWhileParsingObject)
