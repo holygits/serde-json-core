@@ -37,7 +37,7 @@ impl From<u8> for Error {
 }
 
 #[cfg(feature = "std")]
-impl ::std::error::Error for Error {
+impl std::error::Error for Error {
     fn description(&self) -> &str {
         ""
     }
